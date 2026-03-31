@@ -1,7 +1,6 @@
 package javafx2.pkgfinal;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -48,19 +47,18 @@ public class week4 extends Application implements EventHandler<ActionEvent>{
     RadioButton r1, r2, r3;
     ComboBox<Integer> cb;
     ColorPicker cp;
-    
-
     ListView<String> studentList;
     BorderPane root;
     Label title;
     Label message;
-    ArrayList<Student> studnets=new ArrayList<>();
+    ArrayList<Student> students = new ArrayList<>();
+
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
-    public void start(Stage stage) throws FileNotFoundException {
+    public void start(Stage stage) throws ClassNotFoundException  {
 
         // =========================
         // Student controls
@@ -213,63 +211,44 @@ public class week4 extends Application implements EventHandler<ActionEvent>{
         title.setId("main-title");
         savedTitle.setId("section-title");
         
+        // =========================
+        // Registering an Events
+        // =========================
         
-        // =========================
-        // Action Register
-        // =========================
-        c1.setOnAction(this);
         c2.setOnAction(this);
         c3.setOnAction(this);
         r1.setOnAction(this);
         r2.setOnAction(this);
         r3.setOnAction(this);
-        cp.setOnAction(this);
         cb.setOnAction(this);
-        male.setOnAction(this);
-        female.setOnAction(this);
-        save.setOnAction(this);
+        cp.setOnAction(this);
         arrow.setOnAction(this);
-        id.setOnAction(this);
-        // =========================
-        // Load All StudentsFrom File to Memory
-        // =========================
+        save.setOnAction(this);
         
+        // Read From File
         readFromFile();
         // =========================
         // Scene
         // =========================
         
-        root.setStyle("-fx-font-family: 'Times New Roman' ");
         Scene scene = new Scene(root, 1000, 500);
 
         // use this only if style.css exists correctly
-         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
 
         stage.setTitle("Student Registration System");
         stage.setScene(scene);
         stage.show();
+        stage.setOnCloseRequest(e->{
+            saveToFile();
+        });
         stage.setAlwaysOnTop(true);
-        
-        
-        stage.setOnCloseRequest(event -> {
-        System.out.println("User is closing the window!");
-        saveStudentsToFile();
-        
-});
-        
-        
     }
 
     @Override
-    public void handle(ActionEvent e) {
-        String gender="";
-        String backgroundColor="white";
-        if(male.isSelected()){
-            gender="male";
-        }
-        if(female.isSelected()){
-            gender="female";
-        }
+    public void handle(ActionEvent t) {
+        String backgroundColor = "white";
+        String gender ="";
         if(r1.isSelected()){
             backgroundColor="red";
         }
@@ -279,132 +258,98 @@ public class week4 extends Application implements EventHandler<ActionEvent>{
         if(r3.isSelected()){
             backgroundColor="blue";
         }
-        if(e.getSource() == cp){
-            String hexColor=cp.getValue().toString().substring(2,8);
-            System.out.println(hexColor);
-            save.setStyle("-fx-background-color:#"+hexColor);
+        if(t.getSource() == cp){
+            String color = cp.getValue().toString().substring(2,8);
+            save.setStyle("-fx-background-color:#"+color);
         }
-        if(e.getSource() == save){
-            if(validate()){
-            String std_name= name.getText();
-            Student s =new Student(std_name, gender);
-            writeDataToStudentListView(s.getId(),s.getName());
-            ArrayList<String> al=new ArrayList(selectedPL.getItems());
-            s.setPl(al);
-            studnets.add(s);
-            id.getItems().add(s.getId());
-            clear();
-            }else{
-                message.setText("name and gender are required! ");
-            }
-        }
-        
-        if(e.getSource()  == arrow){
-            ObservableList<String> selectedItems =
-            FXCollections.observableArrayList(preferedPL.getSelectionModel().getSelectedItems());
-
-            selectedPL.getItems().addAll(selectedItems);
-            preferedPL.getItems().removeAll(selectedItems);
+        if(t.getSource() == arrow){
+            ObservableList<String> ol = FXCollections.observableArrayList(preferedPL.getSelectionModel().getSelectedItems());
+            preferedPL.getItems().removeAll(ol);
+            selectedPL.getItems().addAll(ol);
             
         }
-        
-        if(e.getSource() == id){
-            clear();
-            String selectedId = id.getValue();
-            Student selectedStd=null;
-            for(Student s:studnets){
-                if(s.getId().equals(selectedId)){
-                    selectedStd=s;
-                    break;
-                }
+        if(male.isSelected()){
+            gender="male";
+        }
+        if(female.isSelected()){
+            gender = "female";
+        }
+        if(t.getSource() == save){
+            if(validate()){
+                Student s =new Student(name.getText(), gender);
+                s.setPl(new ArrayList<>(selectedPL.getItems()));
+                students.add(s);
+                studentList.getItems().add(s.toString());
+                id.getItems().add(s.getId());
+                clear();
+            }else{
+                message.setText("Name and gender are required!");
             }
-            name.setText(selectedStd.getName());
-            if (selectedStd.getGender().equals("male")) {
-                male.setSelected(true);
-            } else {
-                female.setSelected(true);
-            }     
-            preferedPL.getItems().removeAll(selectedStd.getPl());
-            selectedPL.getItems().addAll(selectedStd.getPl());
-
-        }
-        
-    root.setStyle(
-        
-        "-fx-font-size: " + cb.getValue() + "px;" +
-        "-fx-font-weight: " + (c2.isSelected() ? "bold" : "normal") + ";" +
-        "-fx-font-style: " + (c3.isSelected() ? "italic" : "normal") + ";"+
-        "-fx-background-color : "+backgroundColor+";"
-    );    
-    
-    }
-    
-    
-    public void clear(){
-        preferedPL.getItems().setAll(pl);
-        selectedPL.getItems().clear();
-        message.setText("");
-        male.setSelected(false);
-        female.setSelected(false);
-        name.setText("");
-    }
-    
-    
-    public void saveStudentsToFile(){
-        if(studnets == null || studnets.isEmpty()){
-        System.out.println("Nothing to save.");
-        return;
-        }
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("src/javafx2/pkgfinal/students.dat"))) {
-        oos.writeObject(studnets);
-            System.out.println("Student saved successfully!");
-        } catch (IOException i) {
-            i.printStackTrace();
+            
+            
         }
 
+        root.setStyle("-fx-font-weight:"+(c2.isSelected()?"bold":"normal") +";"+
+                        "-fx-font-style:"+(c3.isSelected()?"italic":"normal")+";"+
+                        "-fx-background-color:"+backgroundColor+";"+
+                        "-fx-font-size:"+cb.getValue()+"px;");
+
     }
-    
-    
-public void readFromFile(){
-
-    File file = new File("src/javafx2/pkgfinal/students.dat");
-
-    if(!file.exists()){
-        System.out.println("No file yet — starting fresh.");
-        return; // exit the method safely
-    }
-
-    try (ObjectInputStream ois = new ObjectInputStream(
-                                    new FileInputStream(file))) {
-        studnets = (ArrayList<Student>) ois.readObject();
-        System.out.println(studnets);
-        for(Student s : studnets){
-            id.getItems().add(s.getId());
-            writeDataToStudentListView(s.getId(),s.getName());
-        }
-    } catch (IOException | ClassNotFoundException e) {
-        e.printStackTrace();
-    }
-    int id = 0;
-    if(!studnets.isEmpty())
-         id = Integer.parseInt(studnets.getLast().getId().substring(5));
-    Student.counter=id+1;
-}
-
-
-public void writeDataToStudentListView(String id, String name){
-    studentList.getItems().add(id+" - "+name);
-}
-
     
     public boolean validate(){
-        if(name.getText().isBlank() ||tg.getSelectedToggle() == null  )
+        if(name.getText().isBlank() ||tg.getSelectedToggle() == null){
             return false;
+        }
         return true;
     }
+    
 
+    public void clear(){
+        name.setText("");
+        male.setSelected(false);
+        female.setSelected(false);
+        selectedPL.getItems().clear();
+        preferedPL.getItems().setAll(pl);
+        message.setText("");
+    }
 
+    
+
+    public void saveToFile(){
+        
+        try(ObjectOutputStream oos =new ObjectOutputStream(
+                new FileOutputStream("src/javafx2/pkgfinal/students.dat"))){
+            oos.writeObject(students);
+        }catch(IOException e){
+            System.out.println(e);
+        }
+        
+        
+        
+    }
+
+    public void readFromFile() throws ClassNotFoundException{
+        File f = new File("src/javafx2/pkgfinal/students.dat");
+        if(!f.exists()){
+            System.out.println("No File yet");
+            return;
+        }
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(f))) {
+            students = (ArrayList<Student>)ois.readObject();
+            for(Student s:students){
+                studentList.getItems().add(s.toString());
+                id.getItems().add(s.getId());
+            }
+            int stdId = Integer.parseInt(students.getLast().getId().substring(5));
+            Student.counter = stdId+1;
+        }catch(IOException e){
+            System.out.println(e);
+        }
+        
+        
+    }
+    
+
+   
+    
 }
-    
-    
-    

@@ -12,7 +12,6 @@ import java.util.ArrayList;
  * @author aya
  */
 public class Student implements Serializable{
-    private static final long serialVersionUID = 1L;
     private String id;
     private String name;
     private String gender;
@@ -59,7 +58,7 @@ public class Student implements Serializable{
 
     @Override
     public String toString() {
-        return this.name+","+this.id+","+this.gender+","+this.pl+"\n";
+        return this.name+" - "+this.id;
     }
     
     
