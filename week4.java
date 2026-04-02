@@ -31,7 +31,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
-public class week4 extends Application implements EventHandler<ActionEvent>{
+public class Week4 extends Application implements EventHandler<ActionEvent>{
 
     ComboBox<String> id;
     TextField name;
