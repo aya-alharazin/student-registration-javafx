@@ -224,6 +224,7 @@ public class Week4 extends Application implements EventHandler<ActionEvent>{
         cp.setOnAction(this);
         arrow.setOnAction(this);
         save.setOnAction(this);
+        id.setOnAction(this);
         
         // Read From File
         readFromFile();
@@ -287,6 +288,26 @@ public class Week4 extends Application implements EventHandler<ActionEvent>{
             }
             
             
+        }
+        if(t.getSource() == id){
+            clear();
+            String selectedId = id.getValue();
+            Student stu = null;
+            for(Student s : students){
+                if(s.getId().equals(selectedId)){
+                    stu = s;
+                    break;
+                }
+            }
+            name.setText(stu.getName());
+            if(stu.getGender().equals("male")){
+                male.setSelected(true);
+            }else{
+                female.setSelected(true);
+            }
+            ObservableList<String> ol = FXCollections.observableArrayList(stu.getPl());
+            preferedPL.getItems().removeAll(ol);
+            selectedPL.getItems().addAll(ol);
         }
 
         root.setStyle("-fx-font-weight:"+(c2.isSelected()?"bold":"normal") +";"+
